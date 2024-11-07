@@ -1,6 +1,7 @@
 package org.FelipeBert.forum.infra.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.FelipeBert.forum.domain.dto.in.AtualizarTopicoDTO;
 import org.FelipeBert.forum.domain.dto.in.BuscaAnoDTO;
 import org.FelipeBert.forum.domain.dto.in.CriarNovoTopicoDTO;
 import org.FelipeBert.forum.domain.dto.out.DadosListagemTopicosDTO;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,8 +38,8 @@ public class TopicoService {
     }
 
     @Transactional
-    public void criarNovoTopico(CriarNovoTopicoDTO dados){
-        validador.forEach(v -> v.validar(dados));
+    public Topico criarNovoTopico(CriarNovoTopicoDTO dados){
+        validarDados(dados);
 
         var autor = usuarioRepository.findById(dados.idAutor())
                 .orElseThrow(() -> new EntityNotFoundException("Id não corresponde a Nenhum Usuario"));
@@ -54,7 +56,36 @@ public class TopicoService {
         novoTopico.setStatus(Status.NAORESPONDIDO);
 
         repository.save(novoTopico);
+        return novoTopico;
     }
+
+    @Transactional
+    public DadosListagemTopicosDTO atualizarTopico(Long id, AtualizarTopicoDTO dados) {
+        if(dados.titulo() == null && dados.mensagem() == null){
+            throw new IllegalArgumentException();
+        }
+        Topico topico = repository.findById(id).orElseThrow(EntityNotFoundException::new);
+
+        CriarNovoTopicoDTO dadosListagem = new CriarNovoTopicoDTO(dados.titulo(), dados.mensagem(), topico.getAutor().getId(), topico.getCurso().getId());
+        validarDados(dadosListagem);
+
+        if(dados.titulo() != null){
+            topico.setTitulo(dados.titulo());
+        }
+        if(dados.mensagem() != null){
+            topico.setMensagem(dados.mensagem());
+        }
+        repository.save(topico);
+
+        return new DadosListagemTopicosDTO(topico);
+    }
+
+    @Transactional
+    public void excluirTopico(Long id) {
+        Topico topico = repository.findById(id).orElseThrow(EntityNotFoundException::new);
+        topico.setStatus(Status.EXCLUIDO);
+    }
+
 
     public Page<DadosListagemTopicosDTO> listarTopicos(Pageable paginacao) {
         var dados = repository.findByStatusNot(Status.EXCLUIDO, paginacao);
@@ -86,7 +117,17 @@ public class TopicoService {
         return dados.stream().map(DadosListagemTopicosDTO::new).collect(Collectors.toList());
     }
 
+    public DadosListagemTopicosDTO buscarTopicoPorId(Long id){
+        Topico topico = repository.findById(id).orElseThrow(EntityNotFoundException::new);
+
+        return new DadosListagemTopicosDTO(topico);
+    }
+
     private Page<DadosListagemTopicosDTO> convertePageDeTopicosParaDTO(Page<Topico> dados){
         return dados.map(DadosListagemTopicosDTO::new);
+    }
+
+    private void validarDados(CriarNovoTopicoDTO dados){
+        validador.forEach(v -> v.validar(dados));
     }
 }
