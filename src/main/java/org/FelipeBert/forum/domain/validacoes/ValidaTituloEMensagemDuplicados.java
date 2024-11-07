@@ -1,6 +1,7 @@
 package org.FelipeBert.forum.domain.validacoes;
 
 import org.FelipeBert.forum.domain.dto.in.CriarNovoTopicoDTO;
+import org.FelipeBert.forum.domain.model.Status;
 import org.FelipeBert.forum.infra.repository.TopicoRepository;
 
 public class ValidaTituloEMensagemDuplicados implements ValidadorCriacaoTopico{
@@ -13,7 +14,7 @@ public class ValidaTituloEMensagemDuplicados implements ValidadorCriacaoTopico{
 
     @Override
     public void validar(CriarNovoTopicoDTO dados) {
-        if(topicoRepository.existsByTituloAndMensagem(dados.titulo(), dados.mensagem())){
+        if(topicoRepository.existsByTituloAndMensagemAndStatusNot(dados.titulo(), dados.mensagem(), Status.EXCLUIDO)){
             throw new IllegalArgumentException("Já existe um tópico com o mesmo título e mensagem.");
         }
     }
