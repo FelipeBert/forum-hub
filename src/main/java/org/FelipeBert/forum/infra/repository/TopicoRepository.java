@@ -11,16 +11,16 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface TopicoRepository extends JpaRepository<Topico, Long> {
-    boolean existsByTituloAndMensagem(String titulo, String mensagem);
+    boolean existsByTituloAndMensagemAndStatusNot(String titulo, String mensagem, Status status);
 
     Page<Topico> findByStatusNot(Status status, Pageable paginacao);
 
-    @Query("SELECT t FROM Topico t WHERE t.curso.id = :cursoId")
+    @Query("SELECT t FROM Topico t WHERE t.curso.id = :cursoId AND t.status <> 'EXCLUIDO'")
     Page<Topico> findTopicosByCursoId(@Param("cursoId") Long cursoId, Pageable paginacao);
 
-    @Query("SELECT t FROM Topico t WHERE YEAR(t.dataCriacao) = :year")
+    @Query("SELECT t FROM Topico t WHERE YEAR(t.dataCriacao) = :year AND t.status <> 'EXCLUIDO'")
     Page<Topico> findTopicosByYear(@Param("year") int year, Pageable pagincao);
 
-    @Query("SELECT t FROM Topico t ORDER BY t.dataCriacao ASC")
+    @Query("SELECT t FROM Topico t WHERE t.status <> 'EXCLUIDO' ORDER BY t.dataCriacao ASC ")
     List<Topico> findTop10ByOrderByDataCriacaoAsc(Pageable pageable);
 }
