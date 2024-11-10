@@ -5,7 +5,7 @@ import org.FelipeBert.forum.domain.dto.in.AtualizarTopicoDTO;
 import org.FelipeBert.forum.domain.dto.in.BuscaAnoDTO;
 import org.FelipeBert.forum.domain.dto.in.CriarNovoTopicoDTO;
 import org.FelipeBert.forum.domain.dto.out.DadosListagemTopicosDTO;
-import org.FelipeBert.forum.infra.service.TopicoService;
+import org.FelipeBert.forum.domain.service.TopicoService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
