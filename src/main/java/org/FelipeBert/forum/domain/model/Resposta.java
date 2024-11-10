@@ -28,4 +28,6 @@ public class Resposta {
 
     @ManyToOne
     private Topico topico;
+
+    private boolean ativo = true;
 }
