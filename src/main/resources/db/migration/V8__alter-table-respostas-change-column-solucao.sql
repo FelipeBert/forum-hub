@@ -1,0 +1,1 @@
+ALTER TABLE respostas MODIFY COLUMN solucao TEXT NOT NULL;
