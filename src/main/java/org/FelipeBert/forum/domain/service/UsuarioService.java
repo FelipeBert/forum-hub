@@ -44,7 +44,7 @@ public class UsuarioService {
 
         usuarioRepository.save(usuario);
 
-        return new DadosListagemUsuarioDTO(usuario.getId(), usuario.getEmail());
+        return new DadosListagemUsuarioDTO(usuario.getId(), usuario.getNome());
     }
 
     @Transactional
