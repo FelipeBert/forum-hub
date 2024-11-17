@@ -14,7 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -55,6 +56,17 @@ class UsuarioControllerTest {
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(usuario, response.getBody());
+    }
+
+    @Test
+    @DisplayName("Deve lançar NullPointerException quando os dados de entrada para criacao forem nulos")
+    void cadastrarUsuarioCenario2(){
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance();
+        CadastrarUsuarioDTO dados = new CadastrarUsuarioDTO(null, null, null);
+
+        assertThrows(NullPointerException.class, () -> {
+            usuarioController.cadastrarUsuario(dados, uriBuilder);
+        });
     }
 
     @Test

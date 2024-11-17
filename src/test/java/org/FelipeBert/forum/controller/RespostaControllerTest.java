@@ -3,19 +3,24 @@ package org.FelipeBert.forum.controller;
 import org.FelipeBert.forum.domain.dto.in.AtualizarRespostaDTO;
 import org.FelipeBert.forum.domain.dto.in.InserirRespostaDTO;
 import org.FelipeBert.forum.domain.dto.out.DadosListagemRespostaDTO;
+import org.FelipeBert.forum.domain.exceptions.EntidadeInativaException;
+import org.FelipeBert.forum.domain.exceptions.EntidadeNaoEncontradaException;
+import org.FelipeBert.forum.domain.model.Resposta;
 import org.FelipeBert.forum.domain.service.RespostaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -48,6 +53,43 @@ class RespostaControllerTest {
     }
 
     @Test
+    @DisplayName("Deve lançar NullPointerException quando os dados de entrada forem nulos")
+    void inserirRespostaCenario2(){
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance();
+        InserirRespostaDTO dados = new InserirRespostaDTO(null, null, null, null);
+
+        assertThrows(NullPointerException.class, () -> {
+            respostaController.inserirResposta(dados, uriBuilder);
+        });
+    }
+
+    @Test
+    @DisplayName("Deve lançar EntidadeNaoEncontradaException quando o identificador do usuário não for encontrado")
+    void inserirRespostaCenario3() {
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance();
+        InserirRespostaDTO dados = new InserirRespostaDTO(1L, -5L, "Mensagem", "Solucao");
+
+        when(respostaService.inserirResposta(dados)).thenThrow(new EntidadeNaoEncontradaException("Usuario"));
+
+        assertThrows(EntidadeNaoEncontradaException.class, () -> {
+            respostaController.inserirResposta(dados, uriBuilder);
+        });
+    }
+
+    @Test
+    @DisplayName("Deve lançar EntidadeNaoEncontradaException quando o identificador do Topico não for encontrado")
+    void inserirRespostaCenario4() {
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance();
+        InserirRespostaDTO dados = new InserirRespostaDTO(-999L, 1L, "Mensagem", "Solucao");
+
+        when(respostaService.inserirResposta(dados)).thenThrow(new EntidadeNaoEncontradaException("Topico"));
+
+        assertThrows(EntidadeNaoEncontradaException.class, () -> {
+            respostaController.inserirResposta(dados, uriBuilder);
+        });
+    }
+
+    @Test
     @DisplayName("Deve retornar resposta com status 200 ao buscar por ID existente")
     void buscarRepostaPorIdCenario1(){
         Long validId = 1L;
@@ -60,6 +102,18 @@ class RespostaControllerTest {
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(respostaDTO, responseEntity.getBody());
+    }
+
+    @Test
+    @DisplayName("Deve lançar EntidadeNaoEncontradaException quando buscar por um identificador de resposta inexistente")
+    void buscarRepostaPorIdCenario2(){
+        Long invalidId = -999L;
+
+        when(respostaService.buscarPorId(invalidId)).thenThrow(new EntidadeNaoEncontradaException("Topico"));
+
+        assertThrows(EntidadeNaoEncontradaException.class, () -> {
+            respostaController.buscarRepostaPorId(invalidId);
+        });
     }
 
     @Test

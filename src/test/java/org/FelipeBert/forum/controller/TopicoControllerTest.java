@@ -3,6 +3,7 @@ package org.FelipeBert.forum.controller;
 import org.FelipeBert.forum.domain.dto.in.AtualizarTopicoDTO;
 import org.FelipeBert.forum.domain.dto.in.CriarNovoTopicoDTO;
 import org.FelipeBert.forum.domain.dto.out.DadosListagemTopicosDTO;
+import org.FelipeBert.forum.domain.exceptions.ParametrosAtualizacaoInvalidosException;
 import org.FelipeBert.forum.domain.model.Curso;
 import org.FelipeBert.forum.domain.model.Topico;
 import org.FelipeBert.forum.domain.model.Usuario;
@@ -61,6 +62,17 @@ class TopicoControllerTest {
     }
 
     @Test
+    @DisplayName("Deve lançar NullPointerException quando os dados de entrada para criacao forem nulos")
+    void criarNovoTopicoCenario2(){
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance();
+        CriarNovoTopicoDTO dados = new CriarNovoTopicoDTO(null, null, null, null);
+
+        assertThrows(NullPointerException.class, () -> {
+            topicoController.criarNovoTopico(dados, uriBuilder);
+        });
+    }
+
+    @Test
     @DisplayName("Deve atualizar tópico com status 200 ao fornecer parâmetros válidos")
     void atualizarTopicoCenario1(){
         Usuario usuario = new Usuario();
@@ -85,6 +97,18 @@ class TopicoControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedResponse, response.getBody());
+    }
+
+    @Test
+    @DisplayName("Deve lançar ParametrosAtualizacaoInvalidosException quando os dados de entrada para atualizacao forem nulos")
+    void atualizarTopicoCenario2(){
+        AtualizarTopicoDTO dados = new AtualizarTopicoDTO(null, null);
+
+        when(topicoService.atualizarTopico(1L, dados)).thenThrow(new ParametrosAtualizacaoInvalidosException());
+
+        assertThrows(ParametrosAtualizacaoInvalidosException.class, () -> {
+            topicoController.atualizarTopico(1L, dados);
+        });
     }
 
     @Test
