@@ -6,6 +6,7 @@ import org.FelipeBert.forum.domain.dto.in.AtualizarSenhaDTO;
 import org.FelipeBert.forum.domain.dto.in.CadastrarUsuarioDTO;
 import org.FelipeBert.forum.domain.dto.in.DeletarUsuarioDTO;
 import org.FelipeBert.forum.domain.dto.out.DadosListagemUsuarioDTO;
+import org.FelipeBert.forum.domain.exceptions.*;
 import org.FelipeBert.forum.domain.model.Usuario;
 import org.FelipeBert.forum.infra.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,14 +26,14 @@ public class UsuarioService {
     }
 
     public DadosListagemUsuarioDTO buscarUsuario(Long id) {
-        var usuario = usuarioRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        var usuario = usuarioRepository.findById(id).orElseThrow(() -> new EntidadeNaoEncontradaException("Usuario"));
         return new DadosListagemUsuarioDTO(usuario.getId(), usuario.getNome());
     }
 
     @Transactional
     public DadosListagemUsuarioDTO cadastrarUsuario(CadastrarUsuarioDTO dados){
         if(verificaUsuarioExistente(dados.email())){
-            throw new EntityExistsException("Ja Existe um Usuario Cadastrado com Esse Email!");
+            throw new CadastroUsuarioExistenteException();
         }
         Usuario usuario = new Usuario();
         usuario.setNome(dados.nome());
@@ -50,16 +51,16 @@ public class UsuarioService {
     @Transactional
     public void atualizarSenha(AtualizarSenhaDTO dados) {
         if(!verificaUsuarioExistente(dados.email())){
-            throw new EntityNotFoundException("Nao existe Usuario Cadastrado com esse Email!");
+            throw new OperacaoEntidadeInexistenteException();
         }
         Usuario usuario = (Usuario) usuarioRepository.findByEmail(dados.email());
 
         if(!usuario.isAtivo()){
-            throw new IllegalArgumentException("Nao e possivel atualizar senha de um usuario inativo");
+            throw new EntidadeInativaException();
         }
 
         if(!passwordEncoder.matches(dados.senhaAntiga(), usuario.getPassword())){
-            throw new IllegalArgumentException("Senha antiga incorreta");
+            throw new SenhaNaoCorrespondeException();
         }
 
         usuario.setSenha(passwordEncoder.encode(dados.senhaNova()));
@@ -69,17 +70,17 @@ public class UsuarioService {
     @Transactional
     public void deletarUsuario(DeletarUsuarioDTO dados) {
         if(!verificaUsuarioExistente(dados.email())){
-            throw new EntityNotFoundException("Nao existe Usuario Cadastrado com esse Email!");
+            throw new OperacaoEntidadeInexistenteException();
         }
 
         Usuario usuario = (Usuario) usuarioRepository.findByEmail(dados.email());
 
         if(!usuario.isAtivo()){
-            throw new IllegalArgumentException("Usuario ja foi Desativado");
+            throw new EntidadeInativaException();
         }
 
         if(!passwordEncoder.matches(dados.senha(), usuario.getPassword())){
-            throw new IllegalArgumentException("Senha incorreta");
+            throw new SenhaNaoCorrespondeException();
         }
 
         usuario.setAtivo(false);

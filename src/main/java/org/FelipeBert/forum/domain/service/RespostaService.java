@@ -1,9 +1,10 @@
 package org.FelipeBert.forum.domain.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.FelipeBert.forum.domain.dto.in.AtualizarRespostaDTO;
 import org.FelipeBert.forum.domain.dto.in.InserirRespostaDTO;
 import org.FelipeBert.forum.domain.dto.out.DadosListagemRespostaDTO;
+import org.FelipeBert.forum.domain.exceptions.EntidadeInativaException;
+import org.FelipeBert.forum.domain.exceptions.EntidadeNaoEncontradaException;
 import org.FelipeBert.forum.domain.model.Resposta;
 import org.FelipeBert.forum.domain.model.Topico;
 import org.FelipeBert.forum.domain.model.Usuario;
@@ -31,8 +32,8 @@ public class RespostaService {
 
     @Transactional
     public DadosListagemRespostaDTO inserirResposta(InserirRespostaDTO dados){
-        Usuario usuario = usuarioRepository.findById(dados.idAutor()).orElseThrow(EntityNotFoundException::new);
-        Topico topico = topicoRepository.findById(dados.idTopico()).orElseThrow(EntityNotFoundException::new);
+        Usuario usuario = usuarioRepository.findById(dados.idAutor()).orElseThrow(() -> new EntidadeNaoEncontradaException("Usuario"));
+        Topico topico = topicoRepository.findById(dados.idTopico()).orElseThrow(() -> new EntidadeNaoEncontradaException("Topico"));
 
         Resposta resposta = new Resposta();
 
@@ -51,9 +52,9 @@ public class RespostaService {
     }
 
     public DadosListagemRespostaDTO buscarPorId(Long id) {
-        Resposta resposta = repository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Resposta resposta = repository.findById(id).orElseThrow(() -> new EntidadeNaoEncontradaException("Resposta"));
         if(!resposta.isAtivo()){
-            throw new EntityNotFoundException("Resposta nao Encontrada");
+            throw new EntidadeInativaException();
         }
 
         return new DadosListagemRespostaDTO(resposta);
@@ -61,10 +62,10 @@ public class RespostaService {
 
     @Transactional
     public DadosListagemRespostaDTO atualizarResposta(AtualizarRespostaDTO dados) {
-        Resposta resposta = repository.findById(dados.id()).orElseThrow(EntityNotFoundException::new);
+        Resposta resposta = repository.findById(dados.id()).orElseThrow(() -> new EntidadeNaoEncontradaException("Resposta"));
 
         if(!resposta.isAtivo()){
-            throw new EntityNotFoundException("Resposta nao Encontrada");
+            throw new EntidadeInativaException();
         }
 
         resposta.setMensagem(dados.mensagem());
@@ -77,7 +78,7 @@ public class RespostaService {
 
     @Transactional
     public void excluirResposta(Long id) {
-        Resposta resposta = repository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Resposta resposta = repository.findById(id).orElseThrow(() -> new EntidadeNaoEncontradaException("Resposta"));
 
         resposta.setAtivo(false);
     }

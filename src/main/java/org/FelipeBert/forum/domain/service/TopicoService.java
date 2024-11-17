@@ -5,6 +5,8 @@ import org.FelipeBert.forum.domain.dto.in.AtualizarTopicoDTO;
 import org.FelipeBert.forum.domain.dto.in.BuscaAnoDTO;
 import org.FelipeBert.forum.domain.dto.in.CriarNovoTopicoDTO;
 import org.FelipeBert.forum.domain.dto.out.DadosListagemTopicosDTO;
+import org.FelipeBert.forum.domain.exceptions.EntidadeNaoEncontradaException;
+import org.FelipeBert.forum.domain.exceptions.ParametrosAtualizacaoInvalidosException;
 import org.FelipeBert.forum.domain.model.Status;
 import org.FelipeBert.forum.domain.model.Topico;
 import org.FelipeBert.forum.domain.validacoes.ValidadorCriacaoTopico;
@@ -18,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,10 +43,10 @@ public class TopicoService {
         validarDados(dados);
 
         var autor = usuarioRepository.findById(dados.idAutor())
-                .orElseThrow(() -> new EntityNotFoundException("Id não corresponde a Nenhum Usuario"));
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Usuario"));
 
         var curso = cursoRepository.findById(dados.idCurso())
-                .orElseThrow(() -> new EntityNotFoundException("Id não corresponde a Nenhum Curso"));
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Curso"));
 
         Topico novoTopico = new Topico();
         novoTopico.setMensagem(dados.mensagem());
@@ -62,9 +63,9 @@ public class TopicoService {
     @Transactional
     public DadosListagemTopicosDTO atualizarTopico(Long id, AtualizarTopicoDTO dados) {
         if(dados.titulo() == null && dados.mensagem() == null){
-            throw new IllegalArgumentException();
+            throw new ParametrosAtualizacaoInvalidosException();
         }
-        Topico topico = repository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Topico topico = repository.findById(id).orElseThrow(() -> new EntidadeNaoEncontradaException("Topico"));
 
         CriarNovoTopicoDTO dadosListagem = new CriarNovoTopicoDTO(dados.titulo(), dados.mensagem(), topico.getAutor().getId(), topico.getCurso().getId());
         validarDados(dadosListagem);
@@ -82,7 +83,7 @@ public class TopicoService {
 
     @Transactional
     public void excluirTopico(Long id) {
-        Topico topico = repository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Topico topico = repository.findById(id).orElseThrow(() -> new EntidadeNaoEncontradaException("Topico"));
         topico.setStatus(Status.EXCLUIDO);
     }
 
