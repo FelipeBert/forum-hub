@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.FelipeBert.forum.domain.dto.in.AtualizarTopicoDTO;
 import org.FelipeBert.forum.domain.dto.in.CriarNovoTopicoDTO;
 import org.FelipeBert.forum.domain.dto.out.DadosListagemTopicosDTO;
+import org.FelipeBert.forum.domain.exceptions.ParametrosAtualizacaoInvalidosException;
 import org.FelipeBert.forum.domain.model.Curso;
 import org.FelipeBert.forum.domain.model.Status;
 import org.FelipeBert.forum.domain.model.Topico;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.FelipeBert.forum.domain.exceptions.EntidadeNaoEncontradaException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,19 +70,19 @@ class TopicoServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException quando o usuário não for encontrado")
+    @DisplayName("Deve lançar EntidadeNaoEncontradaException quando o usuário não for encontrado")
     void criarNovoTopicoCenario2(){
         CriarNovoTopicoDTO dados = new CriarNovoTopicoDTO("Titulo", "Mensagem", 1L, 1L);
 
         Mockito.when(usuarioRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(EntidadeNaoEncontradaException.class, () -> {
             topicoService.criarNovoTopico(dados);
         });
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException quando o curso não for encontrado")
+    @DisplayName("Deve lançar EntidadeNaoEncontradaException quando o curso não for encontrado")
     void criarNovoTopicoCenario3(){
         CriarNovoTopicoDTO dados = new CriarNovoTopicoDTO("Titulo", "Mensagem", 1L, 1L);
         Usuario mockAutor = new Usuario();
@@ -88,7 +90,7 @@ class TopicoServiceTest {
         Mockito.when(usuarioRepository.findById(1L)).thenReturn(Optional.of(mockAutor));
         Mockito.when(cursoRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(EntidadeNaoEncontradaException.class, () -> {
             topicoService.criarNovoTopico(dados);
         });
     }
@@ -115,24 +117,24 @@ class TopicoServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar IllegalArgumentException quando o título e a mensagem são nulos")
+    @DisplayName("Deve lançar ParametrosAtualizacaoInvalidosException quando o título e a mensagem são nulos")
     void atualizarTopicoCenario2(){
         AtualizarTopicoDTO dados = new AtualizarTopicoDTO(null, null);
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(ParametrosAtualizacaoInvalidosException.class, () -> {
             topicoService.atualizarTopico(1L, dados);
         });
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException quando o tópico a ser atualizado não for encontrado")
+    @DisplayName("Deve lançar EntidadeNaoEncontradaException quando o tópico a ser atualizado não for encontrado")
     void atualizarTopicoCenario3(){
         Long id = 999L;
         AtualizarTopicoDTO dados = new AtualizarTopicoDTO("New Title", "New Message");
 
         Mockito.when(topicoRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(EntidadeNaoEncontradaException.class, () -> {
             topicoService.atualizarTopico(id, dados);
         });
     }
@@ -153,13 +155,13 @@ class TopicoServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException ao tentar excluir um tópico que não existe")
+    @DisplayName("Deve lançar EntidadeNaoEncontradaException ao tentar excluir um tópico que não existe")
     void excluirTopicoCenario2(){
         Long id = 999L;
 
         Mockito.when(topicoRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(EntidadeNaoEncontradaException.class, () -> {
             topicoService.excluirTopico(id);
         });
     }

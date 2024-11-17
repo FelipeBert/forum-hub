@@ -1,9 +1,10 @@
 package org.FelipeBert.forum.domain.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.FelipeBert.forum.domain.dto.in.AtualizarRespostaDTO;
 import org.FelipeBert.forum.domain.dto.in.InserirRespostaDTO;
 import org.FelipeBert.forum.domain.dto.out.DadosListagemRespostaDTO;
+import org.FelipeBert.forum.domain.exceptions.EntidadeInativaException;
+import org.FelipeBert.forum.domain.exceptions.EntidadeNaoEncontradaException;
 import org.FelipeBert.forum.domain.model.Resposta;
 import org.FelipeBert.forum.domain.model.Topico;
 import org.FelipeBert.forum.domain.model.Usuario;
@@ -64,20 +65,20 @@ class RespostaServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException ao inserir resposta com ID de usuário inválido")
+    @DisplayName("Deve lançar EntidadeNaoEncontradaException ao inserir resposta com ID de usuário inválido")
     void inserirRespostaCenario2(){
         Long id = 1L;
         when(usuarioRepository.findById(id)).thenReturn(Optional.empty());
 
         InserirRespostaDTO inserirRespostaDTO = new InserirRespostaDTO(id, id, "Mensagem", "Solucao");
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(EntidadeNaoEncontradaException.class, () -> {
             respostaService.inserirResposta(inserirRespostaDTO);
         });
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException ao inserir resposta com ID de tópico inválido")
+    @DisplayName("Deve lançar EntidadeNaoEncontradaException ao inserir resposta com ID de tópico inválido")
     void inserirRespostaCenario3(){
         Long id = 1L;
         Usuario usuario = new Usuario();
@@ -88,7 +89,7 @@ class RespostaServiceTest {
 
         InserirRespostaDTO inserirRespostaDTO = new InserirRespostaDTO(id, id, "Mensagem", "Solucao");
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(EntidadeNaoEncontradaException.class, () -> {
             respostaService.inserirResposta(inserirRespostaDTO);
         });
     }
@@ -119,18 +120,18 @@ class RespostaServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException quando não encontrar resposta com ID fornecido")
+    @DisplayName("Deve lançar EntidadeNaoEncontradaException quando não encontrar resposta com ID fornecido")
     void buscarPorIdCenario2(){
         Long id = 1L;
         Mockito.when(respostaRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(EntidadeNaoEncontradaException.class, () -> {
             respostaService.buscarPorId(id);
         });
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException ao buscar resposta com status inativo")
+    @DisplayName("Deve lançar EntidadeInativaException ao buscar resposta com status inativo")
     void buscarPorIdCenario3(){
         Long id = 1L;
         Resposta resposta = new Resposta();
@@ -139,7 +140,7 @@ class RespostaServiceTest {
 
         Mockito.when(respostaRepository.findById(id)).thenReturn(Optional.of(resposta));
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(EntidadeInativaException.class, () -> {
             respostaService.buscarPorId(id);
         });
     }
@@ -171,7 +172,7 @@ class RespostaServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException ao tentar atualizar uma resposta inativa")
+    @DisplayName("Deve lançar EntidadeInativaException ao tentar atualizar uma resposta inativa")
     void atualizarRespostaCenario2(){
         Long id = 1L;
 
@@ -183,7 +184,7 @@ class RespostaServiceTest {
 
         AtualizarRespostaDTO atualizarRespostaDTO = new AtualizarRespostaDTO(id, "Nova mensagem", "Nova solucao");
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(EntidadeInativaException.class, () -> {
             respostaService.atualizarResposta(atualizarRespostaDTO);
         });
     }
@@ -205,13 +206,13 @@ class RespostaServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException ao tentar excluir resposta com ID inexistente")
+    @DisplayName("Deve lançar EntidadeNaoEncontradaException ao tentar excluir resposta com ID inexistente")
     void excluirRespostaCenario2(){
         Long id = 999L;
 
         Mockito.when(respostaRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(EntidadeNaoEncontradaException.class, () -> {
             respostaService.excluirResposta(id);
         });
     }

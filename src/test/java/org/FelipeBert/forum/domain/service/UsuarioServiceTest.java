@@ -1,11 +1,10 @@
 package org.FelipeBert.forum.domain.service;
 
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityNotFoundException;
 import org.FelipeBert.forum.domain.dto.in.AtualizarSenhaDTO;
 import org.FelipeBert.forum.domain.dto.in.CadastrarUsuarioDTO;
 import org.FelipeBert.forum.domain.dto.in.DeletarUsuarioDTO;
 import org.FelipeBert.forum.domain.dto.out.DadosListagemUsuarioDTO;
+import org.FelipeBert.forum.domain.exceptions.*;
 import org.FelipeBert.forum.domain.model.Usuario;
 import org.FelipeBert.forum.infra.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,13 +50,13 @@ class UsuarioServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar EntityExistsException ao cadastrar usuário com email já existente")
+    @DisplayName("Deve lançar CadastroUsuarioExistenteException ao cadastrar usuário com email já existente")
     void cadastrarUsuarioCenario2(){
         CadastrarUsuarioDTO dados = new CadastrarUsuarioDTO("John Doe", "john.doe@example.com", "password123");
         when(usuarioRepository.existsByEmail(dados.email())).thenReturn(true);
 
 
-        assertThrows(EntityExistsException.class, () -> {
+        assertThrows(CadastroUsuarioExistenteException.class, () -> {
             usuarioService.cadastrarUsuario(dados);
         });
     }
@@ -79,13 +78,13 @@ class UsuarioServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException ao buscar usuário inexistente por ID")
+    @DisplayName("Deve lançar EntidadeNaoEncontradaException ao buscar usuário inexistente por ID")
     void buscarUsuarioCenario2(){
         Long id = 999L;
 
         when(usuarioRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(EntidadeNaoEncontradaException.class, () -> {
             usuarioService.buscarUsuario(id);
         });
     }
@@ -116,7 +115,7 @@ class UsuarioServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException ao tentar atualizar senha com email não cadastrado")
+    @DisplayName("Deve lançar OperacaoEntidadeInexistenteException ao tentar atualizar senha com email não cadastrado")
     void atualizarSenhaCenario2(){
         String email = "test@example.com";
         String oldPassword = "oldPassword";
@@ -126,13 +125,13 @@ class UsuarioServiceTest {
 
         when(usuarioRepository.existsByEmail(email)).thenReturn(false);
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(OperacaoEntidadeInexistenteException.class, () -> {
             usuarioService.atualizarSenha(dados);
         });
     }
 
     @Test
-    @DisplayName("Deve lançar IllegalArgumentException ao tentar atualizar senha de usuário inativo")
+    @DisplayName("Deve lançar EntidadeInativaException ao tentar atualizar senha de usuário inativo")
     void atualizarSenhaCenario3(){
         String email = "test@example.com";
         String oldPassword = "oldPassword";
@@ -148,13 +147,13 @@ class UsuarioServiceTest {
         when(usuarioRepository.existsByEmail(email)).thenReturn(true);
         when(usuarioRepository.findByEmail(email)).thenReturn(usuario);
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(EntidadeInativaException.class, () -> {
             usuarioService.atualizarSenha(dados);
         });
     }
 
     @Test
-    @DisplayName("Deve lançar IllegalArgumentException ao tentar atualizar senha com senha antiga incorreta")
+    @DisplayName("Deve lançar SenhaNaoCorrespondeException ao tentar atualizar senha com senha antiga incorreta")
     void atualizarSenhaCenario4(){
         String email = "test@example.com";
         String oldPassword = "oldPasword";
@@ -172,7 +171,7 @@ class UsuarioServiceTest {
         when(usuarioRepository.findByEmail(email)).thenReturn(usuario);
         when(passwordEncoder.matches(oldPassword, usuario.getPassword())).thenReturn(false);
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(SenhaNaoCorrespondeException.class, () -> {
             usuarioService.atualizarSenha(dados);
         });
     }
@@ -200,7 +199,7 @@ class UsuarioServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar EntityNotFoundException ao tentar deletar usuário com email não cadastrado")
+    @DisplayName("Deve lançar OperacaoEntidadeInexistenteException ao tentar deletar usuário com email não cadastrado")
     void deletarUsuarioCenario2(){
         String email = "test@example.com";
         String password = "Password";
@@ -209,13 +208,13 @@ class UsuarioServiceTest {
 
         when(usuarioRepository.existsByEmail(email)).thenReturn(false);
 
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(OperacaoEntidadeInexistenteException.class, () -> {
             usuarioService.deletarUsuario(dados);
         });
     }
 
     @Test
-    @DisplayName("Deve lançar IllegalArgumentException ao tentar deletar usuário já inativo")
+    @DisplayName("Deve lançar EntidadeInativaException ao tentar deletar usuário já inativo")
     void deletarUsuarioCenario3(){
         String email = "test@example.com";
         String password = "Password";
@@ -230,13 +229,13 @@ class UsuarioServiceTest {
         when(usuarioRepository.existsByEmail(email)).thenReturn(true);
         when(usuarioRepository.findByEmail(email)).thenReturn(usuario);
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(EntidadeInativaException.class, () -> {
             usuarioService.deletarUsuario(dados);
         });
     }
 
     @Test
-    @DisplayName("Deve lançar IllegalArgumentException ao tentar deletar usuário com senha incorreta")
+    @DisplayName("Deve lançar SenhaNaoCorrespondeException ao tentar deletar usuário com senha incorreta")
     void deletarUsuarioCenario4(){
         String email = "test@example.com";
         String wrongPassword = "wrongPassword";
@@ -253,7 +252,7 @@ class UsuarioServiceTest {
         when(usuarioRepository.findByEmail(email)).thenReturn(usuario);
         when(passwordEncoder.matches(wrongPassword, usuario.getPassword())).thenReturn(false);
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(SenhaNaoCorrespondeException.class, () -> {
             usuarioService.deletarUsuario(dados);
         });
     }
