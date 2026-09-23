@@ -85,7 +85,7 @@ pipeline{
         stage('Apply Database migrations to RDS') {
             steps {
                 sh '''
-                    echo "Applying Migrations to RDS Database"
+                    echo "Applying Migrations to RDS Database using flyway"
                     
                     mvn flyway:migrate \
                         -Dflyway.url=jdbc:mysql://${DB_URL}:3306/${DB_NAME}?createDatabaseIfNotExist=true \
