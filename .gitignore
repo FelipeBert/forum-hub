@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Ignorar o diretório local de trabalho do Terraform
+*.terraform/
+
+*.tfvars
+
+# Ignorar arquivos de estado local
+*.tfstate
+*.tfstate.*
+*.tfvars.json
