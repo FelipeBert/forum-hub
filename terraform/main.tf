@@ -1,4 +1,4 @@
-// Root module: wires reusable infrastructure modules together. Values exported
+// Root module: wires reusable infrastructure modules together for CI validation. Values exported
 // by one module (such as subnet IDs) become inputs to another.
 module "network" {
   source = "./modules/network"
