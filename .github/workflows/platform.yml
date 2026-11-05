@@ -4,14 +4,14 @@ on:
   push:
     branches:
       - test-oidc
-    paths:
-      - 'terraform/**'
+    # paths:
+      # - 'terraform/**'
   
   pull_request:
     branches:
       - test-oidc
-    paths:
-      - 'terraform/**'
+    # paths:
+      # - 'terraform/**'
 
   workflow_dispatch:
 
@@ -69,7 +69,7 @@ jobs:
     needs: terraform-plan
     runs-on: ubuntu-latest
 
-    if: github.event_name == 'push' && github.ref == 'refs/head/test-oidc'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/test-oidc'
 
     environment: test
 
