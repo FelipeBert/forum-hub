@@ -3,13 +3,13 @@ name: Build and Push CI Platform
 on:
   push:
     branches:
-      - test/test-oidc
+      - test-oidc
     paths:
       - 'terraform/**'
   
   pull_request:
     branches:
-      - main
+      - test-oidc
     paths:
       - 'terraform/**'
 
