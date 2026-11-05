@@ -60,9 +60,10 @@ jobs:
           TF_VAR_region: ${{ vars.REGION }}
           TF_VAR_ip_admin: ${{ secrets.IP_ADMIN }}
           TF_VAR_vpc_cidr: ${{ vars.VPC_CIDR }}
-          TF_VAR_public_subnets_cidr: ${{ vars.PUBLIC_SUBNETS_CIDR }}
-          TF_VAR_private_subnets_cidr: ${{ vars.PRIVATE_SUBNETS_CIDR }}
-        run: terraform plan -out=tfplan
+        run: |
+          terraform plan -out=tfplan \
+          -var="public_subnets_cidr=${{ vars.PUBLIC_SUBNETS_CIDR }}" \
+          -var="private_subnets_cidr=${{ vars.PRIVATE_SUBNETS_CIDR }}"
       
       - name: Upload Terraform Plan
         uses: actions/upload-artifact@v4
