@@ -3,15 +3,15 @@ name: Build and Push CI Platform
 on:
   push:
     branches:
-      - test-oidc
-    # paths:
-      # - 'terraform/**'
+      - main
+    paths:
+      - 'terraform/**'
   
   pull_request:
     branches:
-      - test-oidc
-    # paths:
-      # - 'terraform/**'
+      - main
+    paths:
+      - 'terraform/**'
 
   workflow_dispatch:
 
@@ -27,7 +27,7 @@ jobs:
   terraform-plan:
     name: terraform plan
     runs-on: ubuntu-latest
-    environment: test
+    environment: production
     defaults:
       run:
         working-directory: ./terraform
@@ -39,8 +39,8 @@ jobs:
       - name: Configure AWS Credentials (Plan)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::742875367683:role/TestPolicie
-          aws-region: sa-east-1
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_TERRAFORM_PLAN }}
+          aws-region: ${{ vars.REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
@@ -56,9 +56,12 @@ jobs:
         run: terraform validate
       
       - name: Generate tfvars
+        env:
+          PUBLIC_SUBNETS_CIDR: ${{ vars.PUBLIC_SUBNETS_CIDR }}
+          PRIVATE_SUBNETS_CIDR: ${{ vars.PRIVATE_SUBNETS_CIDR }}
         run: |
-          echo 'public_subnets_cidr = ${{ vars.PUBLIC_SUBNETS_CIDR }}' >> terraform.tfvars
-          echo 'private_subnets_cidr = ${{ vars.PRIVATE_SUBNETS_CIDR }}' >> terraform.tfvars
+          printf 'public_subnets_cidr = %s\n' "$PUBLIC_SUBNETS_CIDR" > terraform.tfvars
+          printf 'private_subnets_cidr = %s\n' "$PRIVATE_SUBNETS_CIDR" >> terraform.tfvars
 
       - name: Terraform Plan
         env:
@@ -79,9 +82,9 @@ jobs:
     needs: terraform-plan
     runs-on: ubuntu-latest
 
-    if: github.event_name == 'push' && github.ref == 'refs/heads/test-oidc'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
-    environment: test
+    environment: production
 
     defaults:
       run:
@@ -91,11 +94,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials (Plan)
+      - name: Configure AWS Credentials (Apply)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::742875367683:role/TestPolicie
-          aws-region: sa-east-1
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_TERRAFORM_APPLY }}
+          aws-region: ${{ vars.REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
