@@ -15,7 +15,7 @@ module "jenkins_master" {
   subnet_id    = module.network.public_subnets_ids[0]
   sonarqube_sg = module.sonarqube.security_group_id
 
-  ip_admin  = var.ip_admin
+  ip_admin = var.ip_admin
 }
 
 module "jenkins_agents" {
@@ -36,7 +36,7 @@ module "sonarqube" {
 
   agent_sg = module.jenkins_agents.security_group_id
 
-  ip_admin  = var.ip_admin
+  ip_admin = var.ip_admin
 }
 
 module "s3" {
