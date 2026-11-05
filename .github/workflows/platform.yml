@@ -27,6 +27,7 @@ jobs:
   terraform-plan:
     name: terraform plan
     runs-on: ubuntu-latest
+    environment: test
     defaults:
       run:
         working-directory: ./terraform
@@ -55,6 +56,12 @@ jobs:
         run: terraform validate
       
       - name: Terraform Plan
+        env:
+          TF_VAR_region: ${{ vars.REGION }}
+          TF_VAR_ip_admin: ${{ secrets.IP_ADMIN }}
+          TF_VAR_vpc_cidr: ${{ vars.VPC_CIDR }}
+          TF_VAR_public_subnets_cidr: ${{ vars.PUBLIC_SUBNETS_CIDR }}
+          TF_VAR_private_subnets_cidr: ${{ vars.PRIVATE_SUBNETS_CIDR }}
         run: terraform plan -out=tfplan
       
       - name: Upload Terraform Plan
