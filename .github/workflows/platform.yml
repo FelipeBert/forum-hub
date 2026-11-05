@@ -1,0 +1,101 @@
+name: Build and Push CI Platform
+
+on:
+  push:
+    branches:
+      - test/test-oidc
+    paths:
+      - 'terraform/**'
+  
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+
+  concurrency:
+    group: terraform-${{ github.ref }}
+    cancel-in-progress: false
+
+  permissions:
+    id-token: write
+    contents: read
+  
+jobs:
+  terraform-plan:
+    name: terraform plan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (Plan)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::742875367683:role/TestPolicie
+          aws-region: sa-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Terraform Format
+        run: terraform fmt -check
+        continue-on-error: false
+
+      - name: Terraform Init
+        run: terraform init
+      
+      - name: Terraform Validate
+        run: terraform validate
+      
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+      
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: terraform/tfplan
+          retention-days: 1
+
+  terraform-apply:
+    name: terraform apply
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'push' && github.ref == 'refs/head/test/test-oidc'
+
+    environment: test
+
+    defaults:
+      run:
+        working-directory: ./terraform
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (Plan)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::742875367683:role/TestPolicie
+          aws-region: sa-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: terraform/
+      
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
